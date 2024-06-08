@@ -1,0 +1,279 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package vista;
+
+
+import controlador.CategoriaController;
+import controlador.ProductoController;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import modelo.CategoriaDAO;
+import modelo.Categoria;
+import modelo.Producto;
+import modelo.ProductoDAO;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import datechooser.beans.DateChooserCombo;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ *
+ * @author alary
+ */
+public class RegistroVentasPanel extends javax.swing.JPanel {
+
+    private Connection conexion;
+
+    /**
+     * Creates new form RegistroVentasPanel
+     */
+    public RegistroVentasPanel(Connection conexion) {
+        this.conexion = conexion;
+        initComponents();
+        inicializarTabla();
+        cargarDatos();
+    }
+
+    private void inicializarTabla() {
+        String[] columnNames = {
+            "ID Venta", "Fecha Venta", "ID Usuario", "Total Venta", "Método de Pago",
+            "ID Producto", "Cantidad", "Precio Unitario", "Subtotal"
+        };
+
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+        TablaRegistroVentas.setModel(model);
+    }
+
+    private void cargarDatos() {
+        String query = "SELECT v.idventa, v.fechaventa, v.fk_idusuario, v.totalventa, v.metodopago, "
+                + "dv.fk_idproducto_, dv.cantidad, dv.preciounitario, dv.subtotal "
+                + "FROM ventas v "
+                + "JOIN detalleventa dv ON v.idventa = dv.fk_idventa";
+
+        try (Statement stmt = conexion.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
+
+            DefaultTableModel model = (DefaultTableModel) TablaRegistroVentas.getModel();
+
+            while (rs.next()) {
+                Object[] row = {
+                    rs.getInt("idventa"),
+                    rs.getTimestamp("fechaventa"),
+                    rs.getInt("fk_idusuario"),
+                    rs.getDouble("totalventa"),
+                    rs.getString("metodopago"),
+                    rs.getInt("fk_idproducto_"),
+                    rs.getInt("cantidad"),
+                    rs.getDouble("preciounitario"),
+                    rs.getDouble("subtotal")
+                };
+                model.addRow(row);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void buscarVentasPorFecha() {
+        Date fechaInicio = dateChooserInicio.getSelectedDate().getTime();
+        Date fechaFin = dateChooserFin.getSelectedDate().getTime();
+
+        if (fechaInicio == null || fechaFin == null) {
+            JOptionPane.showMessageDialog(this, "Por favor, selecciona ambas fechas.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        String fechaInicioStr = dateFormat.format(fechaInicio);
+        String fechaFinStr = dateFormat.format(fechaFin);
+
+        String query = "SELECT v.idventa, v.fechaventa, v.fk_idusuario, v.totalventa, v.metodopago, "
+                + "dv.fk_idproducto_, dv.cantidad, dv.preciounitario, dv.subtotal "
+                + "FROM ventas v "
+                + "JOIN detalleventa dv ON v.idventa = dv.fk_idventa "
+                + "WHERE v.fechaventa BETWEEN ? AND ?";
+
+        try (PreparedStatement stmt = conexion.prepareStatement(query)) {
+            stmt.setString(1, fechaInicioStr);
+            stmt.setString(2, fechaFinStr);
+
+            ResultSet rs = stmt.executeQuery();
+            DefaultTableModel model = (DefaultTableModel) TablaRegistroVentas.getModel();
+            model.setRowCount(0);
+
+            while (rs.next()) {
+                Object[] row = {
+                    rs.getInt("idventa"),
+                    rs.getTimestamp("fechaventa"),
+                    rs.getInt("fk_idusuario"),
+                    rs.getDouble("totalventa"),
+                    rs.getString("metodopago"),
+                    rs.getInt("fk_idproducto_"),
+                    rs.getInt("cantidad"),
+                    rs.getDouble("preciounitario"),
+                    rs.getDouble("subtotal")
+                };
+                model.addRow(row);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al realizar la búsqueda.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        btnBuscar = new javax.swing.JButton();
+        dateChooserInicio = new datechooser.beans.DateChooserCombo();
+        dateChooserFin = new datechooser.beans.DateChooserCombo();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        TablaRegistroVentas = new javax.swing.JTable();
+        jPanel3 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+
+        setBackground(new java.awt.Color(102, 102, 102));
+        setPreferredSize(new java.awt.Dimension(940, 550));
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 204));
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        btnBuscar.setText("Buscar");
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btnBuscar, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 10, 120, 40));
+
+        dateChooserInicio.setCalendarPreferredSize(new java.awt.Dimension(338, 180));
+        jPanel1.add(dateChooserInicio, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 30, 100, -1));
+
+        dateChooserFin.setCalendarPreferredSize(new java.awt.Dimension(338, 180));
+        jPanel1.add(dateChooserFin, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 30, 110, -1));
+
+        jLabel1.setText("Desde:");
+        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 10, 90, -1));
+
+        jLabel3.setText("Hasta:");
+        jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 10, 150, -1));
+
+        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
+
+        TablaRegistroVentas.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(TablaRegistroVentas);
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 888, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 335, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jPanel3.setBackground(new java.awt.Color(255, 255, 102));
+
+        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        jLabel2.setText("Registro de Ventas");
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(67, 67, 67)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 920, Short.MAX_VALUE)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(23, Short.MAX_VALUE))
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+        // TODO add your handling code here:
+         buscarVentasPorFecha();
+    }//GEN-LAST:event_btnBuscarActionPerformed
+
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTable TablaRegistroVentas;
+    private javax.swing.JButton btnBuscar;
+    private datechooser.beans.DateChooserCombo dateChooserFin;
+    private datechooser.beans.DateChooserCombo dateChooserInicio;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JScrollPane jScrollPane1;
+    // End of variables declaration//GEN-END:variables
+}
